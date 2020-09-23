@@ -13,6 +13,7 @@ from utils.logger import log
 from utils.selenium_utils import options, ChromeOptions
 
 from time import sleep
+from sys import exit
 
 LOGIN_URL = "https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2F%3Fref_%3Dnav_custrec_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&"
 
@@ -63,16 +64,23 @@ class Amazon:
         log.info(f"Initial availability message is: {availability}")
 
         while not self.driver.find_elements_by_xpath('//*[@id="buy-now-button"]'):
-            try:
-                self.driver.refresh()
-                log.info("Refreshing page.")
-                availability = self.wait.until(
-                    presence_of_element_located((By.ID, "availability"))
-                ).text.replace("\n", " ")
-                log.info(f"Current availability message is: {availability}")
-                time.sleep(delay)
-            except TimeoutException as _:
-                log.warn("A polling request timed out. Retrying.")
+            timeouts = 0
+            while True:
+                try:
+                    self.driver.refresh()
+                    log.info("Refreshing page.")
+                    availability = self.wait.until(
+                        presence_of_element_located((By.ID, "availability"))
+                    ).text.replace("\n", " ")
+                    log.info(f"Current availability message is: {availability}")
+                    time.sleep(delay)
+                    break
+                except TimeoutException as _:
+                    log.warn("A polling request timed out. Retrying.")
+                    timeouts += 1
+                    if timeouts > 5:
+                        log.fatal("Too many timeouts")
+                        exit(1)
 
         log.info("Item in stock, buy now button found!")
         price_str = self.driver.find_element_by_id("priceblock_ourprice").text
