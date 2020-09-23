@@ -10,7 +10,9 @@ from selenium.common.exceptions import TimeoutException
 
 from notifications.notifications import NotificationHandler
 from utils.logger import log
-from utils.selenium_utils import options, chrome_options
+from utils.selenium_utils import options, ChromeOptions
+
+from time import sleep
 
 LOGIN_URL = "https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2F%3Fref_%3Dnav_custrec_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&"
 
@@ -18,15 +20,18 @@ LOGIN_URL = "https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.
 class Amazon:
     def __init__(self, username, password, debug=False):
         self.notification_handler = NotificationHandler()
-        if not debug:
-            chrome_options.add_argument("--headless")
+        chrome_options = ChromeOptions()
+        chrome_options.experimental_options["debuggerAddress"] = "localhost:7617"
+        #if not debug:
+        #    chrome_options.add_argument("--headless")
+        
         self.driver = webdriver.Chrome(
             executable_path=binary_path, options=options, chrome_options=chrome_options
         )
         self.wait = WebDriverWait(self.driver, 10)
         self.username = username
         self.password = password
-        self.login()
+        #self.login()
         time.sleep(3)
 
     def login(self):
@@ -82,21 +87,20 @@ class Amazon:
             log.info(f"Price was too high {price_int}")
 
     def buy_now(self):
-        self.driver.find_element_by_xpath('//*[@id="buy-now-button"]').click()
-        log.info("Clicking 'Buy Now'.")
+        self.driver.find_element_by_xpath('//*[@id="add-to-cart-button"]').click()
+        log.info("Clicking 'Add to cart'.")
 
-        try:
-            place_order = WebDriverWait(self.driver, 2).until(
-                presence_of_element_located((By.ID, "turbo-checkout-pyo-button"))
-            )
-        except:
-            log.debug("Went to check out page.")
-            place_order = WebDriverWait(self.driver, 2).until(
-                presence_of_element_located((By.NAME, "placeYourOrder1"))
-            )
+        WebDriverWait(self.driver, 10).until(
+            presence_of_element_located((By.ID, "hlb-ptc-btn-native"))
+        ).click()
+
+        log.debug("Went to check out page.")
+        WebDriverWait(self.driver, 10).until(
+            presence_of_element_located((By.NAME, "placeYourOrder1"))
+        ).click()
 
         log.info("Clicking 'Place Your Order'.")
-        place_order.click()
+
         self.notification_handler.send_notification(
             f"Item was purchased! Check your Amazon account."
         )
