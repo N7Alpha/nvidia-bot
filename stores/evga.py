@@ -15,6 +15,8 @@ from utils import selenium_utils
 from utils.logger import log
 from utils.selenium_utils import options, chrome_options
 
+from selenium.common.exceptions import TimeoutException
+
 LOGIN_URL = "https://secure.evga.com/us/login.asp"
 CONFIG_PATH = "evga_config.json"
 
@@ -114,14 +116,17 @@ class Evga:
             '//input[@class="btnBigAddCart"]'
         )
         while not atc_buttons:
-            log.debug("Refreshing page for GPU")
-            self.driver.get(
-                product_page
-            )
-            atc_buttons = self.driver.find_elements_by_xpath(
-                '//input[@class="btnBigAddCart"]'
-            )
-            sleep(delay)
+            try:
+                log.debug("Refreshing page for GPU")
+                self.driver.get(
+                    product_page
+                )
+                atc_buttons = self.driver.find_elements_by_xpath(
+                    '//input[@class="btnBigAddCart"]'
+                )
+                sleep(delay)
+            except TimeoutException as _: 
+                log.warn("Timed out retrying...")
 
         #  Add to cart
         atc_buttons[0].click()
