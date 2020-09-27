@@ -14,6 +14,7 @@ from utils.selenium_utils import options, ChromeOptions
 
 from time import sleep
 from sys import exit
+from selenium.webdriver.support import expected_conditions as EC
 
 LOGIN_URL = "https://www.amazon.com/ap/signin?openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fwww.amazon.com%2F%3Fref_%3Dnav_custrec_signin&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=usflex&openid.mode=checkid_setup&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&"
 
@@ -98,6 +99,17 @@ class Amazon:
         self.driver.find_element_by_xpath('//*[@id="add-to-cart-button"]').click()
         log.info("Clicking 'Add to cart'.")
 
+        WebDriverWait(self.driver, 10).until_not(
+            EC.title_is("")
+        )
+        title = self.driver.title
+        log.info(title)
+        if "cart" not in title.lower():
+            log.info("Skipping warranty offer")
+            WebDriverWait(self.driver, 10).until(
+                presence_of_element_located((By.ID, "siNoCoverage-announce"))
+            ).click()
+        
         WebDriverWait(self.driver, 10).until(
             presence_of_element_located((By.ID, "hlb-ptc-btn-native"))
         ).click()
