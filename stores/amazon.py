@@ -110,16 +110,17 @@ class Amazon:
                 presence_of_element_located((By.ID, "siNoCoverage-announce"))
             ).click()
         
+        log.debug("Went to check out page.")
+
         WebDriverWait(self.driver, 10).until(
             presence_of_element_located((By.ID, "hlb-ptc-btn-native"))
         ).click()
 
-        log.debug("Went to check out page.")
+        log.info("Clicking 'Place Your Order'.")
+
         WebDriverWait(self.driver, 10).until(
             presence_of_element_located((By.NAME, "placeYourOrder1"))
         ).click()
-
-        log.info("Clicking 'Place Your Order'.")
 
         self.notification_handler.send_notification(
             f"Item was purchased! Check your Amazon account."

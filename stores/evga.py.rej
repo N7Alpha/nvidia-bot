@@ -1,0 +1,10 @@
+diff a/stores/evga.py b/stores/evga.py	(rejected hunks)
+@@ -13,7 +13,7 @@ import pickle
+ 
+ from utils import selenium_utils
+ from utils.logger import log
+-from utils.selenium_utils import options, chrome_options
++from utils.selenium_utils import options, ChromeOptions
+ 
+ LOGIN_URL = "https://secure.evga.com/us/login.asp"
+ CONFIG_PATH = "evga_config.json"
